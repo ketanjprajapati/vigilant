@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1041211954940",
+    "firebase_url": "https://fir-reactnative-e52de-default-rtdb.firebaseio.com",
+    "project_id": "fir-reactnative-e52de",
+    "storage_bucket": "fir-reactnative-e52de.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1041211954940:android:c0c41a23464966d28ca979",
+        "android_client_info": {
+          "package_name": "com.vigilant"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1041211954940-kbib13jm9b3d4bojkitlvk7l7i2inmhe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDG1Gfzq9HbgISQ5FFNg7V4mJTUbxcuqwM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1041211954940-kbib13jm9b3d4bojkitlvk7l7i2inmhe.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
