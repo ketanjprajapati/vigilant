@@ -1,22 +1,39 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Provider } from 'react-native-paper'
 import { NavigationContainer } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
 import { theme } from './src/core/theme'
+import {getData} from './src/helpers/storage'
 import {
-  StartScreen,
   LoginScreen,
   RegisterScreen,
   ResetPasswordScreen,
-  Dashboard,WarningScreen,SuccessScreen
+  Dashboard, WarningScreen, SuccessScreen
 } from './src/screens'
-
 const Stack = createStackNavigator()
+import { NotificationServices, requestUserPermission } from './src/utils/PushNotifications'
 
 export default function App() {
+  const navigationRef = useRef(null);
+
+  useEffect(() => {
+    requestUserPermission()
+    if (navigationRef.current) {
+      NotificationServices(navigationRef);
+    }
+const checkLogin=async()=>{
+  if(await getData('fcmToken')){
+      navigationRef.current.navigate('SuccessScreen')
+    }else{
+    navigationRef.current.navigate('LoginScreen')
+  }
+}
+checkLogin()
+  }, [])
+  
   return (
     <Provider theme={theme}>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <Stack.Navigator
           initialRouteName="StartScreen"
           screenOptions={{

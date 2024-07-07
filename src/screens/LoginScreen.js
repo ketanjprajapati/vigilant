@@ -1,34 +1,68 @@
 import React, { useState } from 'react'
-import { TouchableOpacity, StyleSheet, View } from 'react-native'
+import { TouchableOpacity, StyleSheet, View, Alert } from 'react-native'
 import { Text } from 'react-native-paper'
 import Background from '../components/Background'
 import Logo from '../components/Logo'
-import Header from '../components/Header'
 import Button from '../components/Button'
 import TextInput from '../components/TextInput'
-import BackButton from '../components/BackButton'
 import { theme } from '../core/theme'
 import { emailValidator } from '../helpers/emailValidator'
 import { passwordValidator } from '../helpers/passwordValidator'
+import { codeValidator } from '../helpers/deviceCodeValidator'
 import { FontFamily, Border, Color } from "../../GlobalStyles";
-
+import { sendNotification } from '../helpers/sendNotification'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import messaging from '@react-native-firebase/messaging';
+// import DeviceInfo from 'react-native-device-info';
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState({ value: '', error: '' })
   const [password, setPassword] = useState({ value: '', error: '' })
+  const [device_code, setDeviceCode] = useState({ value: '', error: '' })
 
-  const onLoginPressed = () => {
-    // const emailError = emailValidator(email.value)
-    // const passwordError = passwordValidator(password.value)
-    // if (emailError || passwordError) {
-    //   setEmail({ ...email, error: emailError })
-    //   setPassword({ ...password, error: passwordError })
-    //   return
-    // }
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Warning' }],
-    })
-  }
+  const onLoginPressed = async () => {
+    const emailError = emailValidator(email.value);
+    const passwordError = passwordValidator(password.value);
+    const deviceCodeError = codeValidator(device_code.value);
+    if (emailError || passwordError || deviceCodeError) {
+      setEmail({ ...email, error: emailError });
+      setPassword({ ...password, error: passwordError });
+      setDeviceCode({ ...device_code, error: deviceCodeError });
+      return;
+    }
+    
+    try {
+      const userQuerySnapshot = await firestore().collection('users').where('email', '==', email.value).where('password', '==', password.value).get();
+      if (userQuerySnapshot.empty) {
+        Alert.alert("Error Message:","Account not exist.!")
+        return;
+       }
+      const userCredential = await auth().signInWithEmailAndPassword(email.value, password.value);
+      console.log("userCredential:",userCredential)
+      const user = userCredential.user;
+      const token = await messaging().getToken();
+  
+      await firestore().collection('users').doc(user.uid).update({
+        fcmToken: token,
+        deviceCode:device_code.value,
+        // deviceId:DeviceInfo.getUniqueId()
+      });
+  
+      await AsyncStorage.setItem('fcmToken', token);
+      await AsyncStorage.setItem('userId', user.uid);
+  
+      sendNotification(email.value, 'Vigilant', 'Welcome back to vigilant');
+  
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'SuccessScreen' }],
+      });
+    } catch (error) {
+      console.error('Login failed:', error);
+      // Handle error (e.g., show a message to the user)
+    }
+  };
 
   return (
     <Background>
@@ -47,6 +81,15 @@ export default function LoginScreen({ navigation }) {
         textContentType="emailAddress"
         keyboardType="email-address"
       />
+        <TextInput
+          label="Device Code"
+          returnKeyType="next"
+          value={device_code.value}
+          onChangeText={(text) => setDeviceCode({ value: text, error: '' })}
+          error={!!device_code.error}
+          errorText={device_code.error}
+          secureTextEntry
+        />
       <TextInput
         label="Password"
         returnKeyType="done"

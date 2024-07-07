@@ -3,9 +3,18 @@ import { Image, StyleSheet, View, Text, Dimensions, TouchableOpacity } from "rea
 import { Color, FontFamily, Border } from "../../GlobalStyles";
 import { useNavigation } from "@react-navigation/native";
 import Background from '../components/Background'
+import { getData } from "../helpers/storage";
+import firestore from '@react-native-firebase/firestore';
 const { width, height } = Dimensions.get("window");
 const WarningScreen = () => {
   const navigation = useNavigation();
+  const CancelNotification=async()=>{
+    let userId = await getData('userId')
+    await firestore().collection('users').doc(userId).update({
+      fcmToken: null
+    });
+    navigation.navigate('LoginScreen')
+  }
   return (
     <Background>
     <View style={styles.connecedDevice}>
@@ -24,7 +33,7 @@ const WarningScreen = () => {
           <Text style={styles.warningText}>Warning!</Text>
           
           <TouchableOpacity 
-            onPress={() => navigation.navigate('LoginScreen')} 
+            onPress={CancelNotification} 
             style={styles.button}
           >
             <Text style={styles.buttonText}>Cancel</Text>

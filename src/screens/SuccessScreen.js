@@ -15,6 +15,7 @@ const SuccessScreen = () => {
       />
       <Pressable
         style={styles.connecedDeviceChild}
+        
         onPress={() =>{navigation.navigate('LoginScreen')}}
       />
       <Text style={[styles.successfullyConnected, styles.okTypo]}>

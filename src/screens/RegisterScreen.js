@@ -1,38 +1,86 @@
-import React, { useState } from 'react'
-import { View, StyleSheet, TouchableOpacity } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native'
 import { Text } from 'react-native-paper'
 import Background from '../components/Background'
 import Logo from '../components/Logo'
 import Header from '../components/Header'
 import Button from '../components/Button'
 import TextInput from '../components/TextInput'
-import BackButton from '../components/BackButton'
 import { theme } from '../core/theme'
 import { emailValidator } from '../helpers/emailValidator'
 import { passwordValidator } from '../helpers/passwordValidator'
 import { nameValidator } from '../helpers/nameValidator'
 import { FontFamily, Border, Color } from "../../GlobalStyles";
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import messaging from '@react-native-firebase/messaging';
+import { sendNotification } from '../helpers/sendNotification'
+
+const SCOPES = ['https://www.googleapis.com/auth/firebase.messaging'];
 export default function RegisterScreen({ navigation }) {
-  const [name, setName] = useState({ value: '', error: '' })
-  const [email, setEmail] = useState({ value: '', error: '' })
-  const [password, setPassword] = useState({ value: '', error: '' })
+  const [name, setName] = useState({ value: 'ketan', error: '' })
+  const [email, setEmail] = useState({ value: 'ketanjdbmp33164@gmail.com', error: '' })
+  const [password, setPassword] = useState({ value: '123456', error: '' })
+  
+  useEffect(() => {
+    messaging().setBackgroundMessageHandler(async remoteMessage => {
+      // console.log('Message handled in the background!', remoteMessage);
+    });
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      // Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+      console.log(remoteMessage)
+    });
+    return unsubscribe;
+  }, []);
+  const onSignUpPressed = async () => {
+    const nameError = nameValidator(name.value);
+    const emailError = emailValidator(email.value);
+    const passwordError = passwordValidator(password.value);
+    
+    if (emailError || passwordError || nameError) {
+      setName({ ...name, error: nameError });
+      setEmail({ ...email, error: emailError });
+      setPassword({ ...password, error: passwordError });
+      return;
+    }
+    try {
+      // Create user in Firebase Authentication
+      const userQuerySnapshot = await firestore().collection('users').where('email', '==', email.value).get();
+    //   userQuerySnapshot.forEach(doc => {
+    //     const userData = doc.data(); // This contains all fields in the document
+    //     const name = userData.name;
+    //     const token = userData.fcmToken;
+        
+    //     // Pass name and token to a function
+    //     sendRegistrationSuccessNotification(token,name);
+    // });
+    // return;
+      if (!userQuerySnapshot.empty) {
+       Alert.alert("Error Message:","Account already exist.!")
+       return;
+      }
+      const userCredential = await auth().createUserWithEmailAndPassword(email.value, password.value);
+      const user = userCredential.user;
+      const Token = await messaging().getToken();
+      await firestore().collection('users').doc(user.uid).set({
+        name:name.value,
+        email:email.value,
+        fcmToken:Token,
+        password:password.value
+      });
+      sendNotification(email.value, 'Vigilant', 'Welcome to vigilant');
 
-  const onSignUpPressed = () => {
-    // const nameError = nameValidator(name.value)
-    // const emailError = emailValidator(email.value)
-    // const passwordError = passwordValidator(password.value)
-    // if (emailError || passwordError || nameError) {
-    //   setName({ ...name, error: nameError })
-    //   setEmail({ ...email, error: emailError })
-    //   setPassword({ ...password, error: passwordError })
-    //   return
-    // }
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'SuccessScreen' }],
-    })
-  }
-
+  
+      // Navigate to success screen or perform any additional actions
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'LoginScreen' }],
+      });
+    } catch (error) {
+      console.error('Error registering user: ', error);
+      // Handle error (e.g., display error message)
+    }
+  };   
   return (
     <Background>
       <Logo />
