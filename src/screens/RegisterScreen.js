@@ -63,19 +63,55 @@ export default function RegisterScreen({ navigation }) {
       const user = userCredential.user;
       const Token = await messaging().getToken();
       await firestore().collection('users').doc(user.uid).set({
-        name:name.value,
-        email:email.value,
-        fcmToken:Token,
-        password:password.value
+        user_name:name.value,
+        user_email:email.value,
+        device_token:Token,
+        user_password:password.value,
+        room_id:123456,
+        mobile_no:7096848834
       });
-      sendNotification(email.value, 'Vigilant', 'Welcome to vigilant');
+      // sendNotification(email.value, 'Vigilant', 'Welcome to vigilant');
+      const url = 'https://39be-103-251-59-120.ngrok-free.app/signup';
 
+      // Configuration for the fetch request
+      const requestOptions = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+          // Add any other headers as needed
+        },
+        body: JSON.stringify({
+          user_name:name.value,
+          user_email:email.value,
+          device_token:Token,
+          user_password:password.value,
+          room_id:123456,
+          mobile_no:7096848834
+        })
+      };
+      
+      // Making the POST request
+      fetch(url, requestOptions)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json(); // Assuming the server returns JSON
+        })
+        .then(data => {
+          console.log('Success:', data);
+          // Handle the response data as needed
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          // Handle errors
+        });
   
       // Navigate to success screen or perform any additional actions
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'LoginScreen' }],
-      });
+      // navigation.reset({
+      //   index: 0,
+      //   routes: [{ name: 'LoginScreen' }],
+      // });
     } catch (error) {
       console.error('Error registering user: ', error);
       // Handle error (e.g., display error message)

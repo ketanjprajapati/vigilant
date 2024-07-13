@@ -1,5 +1,30 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
+import Sound from 'react-native-sound';
+let soundInstance = null;
+const playSound = () => {
+  soundInstance= new Sound('ringtone.mp3', Sound.MAIN_BUNDLE, (error) => {
+    if (error) {
+      console.log('Failed to load the sound', error);
+      return;
+    }
+    soundInstance.play((success) => {
+      if (success) {
+        console.log('Successfully played the sound');
+      } else {
+        console.log('Playback failed due to audio decoding errors');
+      }
+    });
+  });
+};
+
+export const stopSound = () => {
+  if (soundInstance) {
+    soundInstance.stop(() => {
+      console.log('Sound stopped');
+    });
+  }
+};
 
 export async function requestUserPermission() {
   const authStatus = await messaging().requestPermission();
@@ -38,6 +63,15 @@ export const NotificationServices=(navigationRef)=>{
         }
       }
     )
+    
+    messaging().setBackgroundMessageHandler(async remoteMessage => {
+      console.log(' background!', navigationRef.current.navigate('Warning'));
+      if (remoteMessage.data?.screen === 'Warning') {
+        navigationRef.current.navigate(remoteMessage.data?.screen);
+      } else {
+      }
+      // Handle the background message data here if necessary
+    });
 
     messaging().getInitialNotification().then(remoteMessage=>{
         if(remoteMessage){
@@ -48,11 +82,12 @@ export const NotificationServices=(navigationRef)=>{
             }
         }
     })
-    messaging().onMessage(async remoteMessage => {
-        console.log('ForeGround: ', remoteMessage);
-        if (remoteMessage.data?.screen === 'Warning') {
-          navigationRef.current.navigate(remoteMessage.data?.screen);
-        } else {
-        }
-      });
+    // messaging().onMessage(async remoteMessage => {
+    //     console.log('ForeGround: ', remoteMessage);
+    //     if (remoteMessage.data?.screen === 'Warning') {
+    //       navigationRef.current.navigate(remoteMessage.data?.screen);
+    //       playSound();
+    //     } else {
+    //     }
+    //   });
 }

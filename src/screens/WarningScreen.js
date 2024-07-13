@@ -5,14 +5,16 @@ import { useNavigation } from "@react-navigation/native";
 import Background from '../components/Background'
 import { getData } from "../helpers/storage";
 import firestore from '@react-native-firebase/firestore';
+import { stopSound } from "../utils/PushNotifications";
 const { width, height } = Dimensions.get("window");
 const WarningScreen = () => {
   const navigation = useNavigation();
   const CancelNotification=async()=>{
     let userId = await getData('userId')
     await firestore().collection('users').doc(userId).update({
-      fcmToken: null
+      device_token: null
     });
+    stopSound()
     navigation.navigate('LoginScreen')
   }
   return (

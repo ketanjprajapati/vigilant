@@ -18,18 +18,18 @@ export default function App() {
 
   useEffect(() => {
     requestUserPermission()
-    if (navigationRef.current) {
-      NotificationServices(navigationRef);
-    }
-const checkLogin=async()=>{
-  if(await getData('fcmToken')){
-      navigationRef.current.navigate('SuccessScreen')
-    }else{
-    navigationRef.current.navigate('LoginScreen')
-  }
-}
-checkLogin()
+    NotificationServices(navigationRef);
+    // if (navigationRef.current) {
+    // }
+    checkLogin()
   }, [])
+  const checkLogin=async()=>{
+    if(await getData('fcmToken')){
+        navigationRef.current.navigate('SuccessScreen')
+      }else{
+      navigationRef.current.navigate('LoginScreen')
+    }
+  }
   
   return (
     <Provider theme={theme}>

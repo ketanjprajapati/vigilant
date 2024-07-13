@@ -33,7 +33,7 @@ export default function LoginScreen({ navigation }) {
     }
     
     try {
-      const userQuerySnapshot = await firestore().collection('users').where('email', '==', email.value).where('password', '==', password.value).get();
+      const userQuerySnapshot = await firestore().collection('users').where('user_email', '==', email.value).where('user_password', '==', password.value).get();
       if (userQuerySnapshot.empty) {
         Alert.alert("Error Message:","Account not exist.!")
         return;
@@ -44,9 +44,9 @@ export default function LoginScreen({ navigation }) {
       const token = await messaging().getToken();
   
       await firestore().collection('users').doc(user.uid).update({
-        fcmToken: token,
-        deviceCode:device_code.value,
-        // deviceId:DeviceInfo.getUniqueId()
+        device_token: token,
+        device_code:device_code.value,
+        // deviceId:DeviceInfo.getDeviceId()
       });
   
       await AsyncStorage.setItem('fcmToken', token);
