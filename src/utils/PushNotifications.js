@@ -82,12 +82,12 @@ export const NotificationServices=(navigationRef)=>{
             }
         }
     })
-    // messaging().onMessage(async remoteMessage => {
-    //     console.log('ForeGround: ', remoteMessage);
-    //     if (remoteMessage.data?.screen === 'Warning') {
-    //       navigationRef.current.navigate(remoteMessage.data?.screen);
-    //       playSound();
-    //     } else {
-    //     }
-    //   });
+    messaging().onMessage(async remoteMessage => {
+        console.log('ForeGround: ', remoteMessage);
+        if (remoteMessage.data?.screen === 'Warning') {
+          navigationRef.current.navigate(remoteMessage.data?.screen);
+          playSound();
+        } else {
+        }
+      });
 }
