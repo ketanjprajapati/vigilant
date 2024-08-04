@@ -12,7 +12,7 @@ const WarningScreen = () => {
   const CancelNotification=async()=>{
     let userId = await getData('userId')
     await firestore().collection('users').doc(userId).update({
-      device_token: null
+      notification_token: null
     });
     stopSound()
     navigation.navigate('LoginScreen')

@@ -1,36 +1,26 @@
 {
   "project_info": {
-    "project_number": "447041220726",
-    "project_id": "vigilant-f4774",
-    "storage_bucket": "vigilant-f4774.appspot.com"
+    "project_number": "716263452986",
+    "project_id": "myapp-138b1",
+    "storage_bucket": "myapp-138b1.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:447041220726:android:4bab3868450e37a073ef57",
+        "mobilesdk_app_id": "1:716263452986:android:5e667c240b036ed151a003",
         "android_client_info": {
           "package_name": "com.vigilant"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "447041220726-8vmr6qjsdeupljh204khjqlm5vqqmhhn.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCp3bDMkicLmPd5RJk8mpuIFAapZ1n0jF8"
+          "current_key": "AIzaSyDJtlquzVXMgZJgT4BuWMlh3Q2tSS9tLkw"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "447041220726-8vmr6qjsdeupljh204khjqlm5vqqmhhn.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

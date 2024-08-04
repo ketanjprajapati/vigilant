@@ -20,7 +20,7 @@ export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState({ value: '', error: '' })
   const [password, setPassword] = useState({ value: '', error: '' })
   const [device_code, setDeviceCode] = useState({ value: '', error: '' })
-
+  const [loading, setLoading] = useState(false)
   const onLoginPressed = async () => {
     const emailError = emailValidator(email.value);
     const passwordError = passwordValidator(password.value);
@@ -33,9 +33,11 @@ export default function LoginScreen({ navigation }) {
     }
     
     try {
+      setLoading(true)
       const userQuerySnapshot = await firestore().collection('users').where('user_email', '==', email.value).where('user_password', '==', password.value).get();
       if (userQuerySnapshot.empty) {
         Alert.alert("Error Message:","Account not exist.!")
+        setLoading(false)
         return;
        }
       const userCredential = await auth().signInWithEmailAndPassword(email.value, password.value);
@@ -44,21 +46,22 @@ export default function LoginScreen({ navigation }) {
       const token = await messaging().getToken();
   
       await firestore().collection('users').doc(user.uid).update({
-        device_token: token,
-        device_code:device_code.value,
+        notification_token: token,
+        mac_address:device_code.value,
         // deviceId:DeviceInfo.getDeviceId()
       });
   
       await AsyncStorage.setItem('fcmToken', token);
       await AsyncStorage.setItem('userId', user.uid);
   
-      sendNotification(email.value, 'Vigilant', 'Welcome back to vigilant');
-  
+      // sendNotification(email.value, 'Vigilant', 'Welcome back to vigilant');
+      setLoading(false)
       navigation.reset({
         index: 0,
         routes: [{ name: 'SuccessScreen' }],
       });
     } catch (error) {
+      setLoading(false)
       console.error('Login failed:', error);
       // Handle error (e.g., show a message to the user)
     }
@@ -82,7 +85,7 @@ export default function LoginScreen({ navigation }) {
         keyboardType="email-address"
       />
         <TextInput
-          label="Device Code"
+          label="Mac Address"
           returnKeyType="next"
           value={device_code.value}
           onChangeText={(text) => setDeviceCode({ value: text, error: '' })}
@@ -99,14 +102,14 @@ export default function LoginScreen({ navigation }) {
         errorText={password.error}
         secureTextEntry
       />
-      <View style={styles.forgotPassword}>
+      {/* <View style={styles.forgotPassword}>
         <TouchableOpacity
           onPress={() => navigation.navigate('ResetPasswordScreen')}
         >
           <Text style={styles.forgot}>Forgot your password?</Text>
         </TouchableOpacity>
-      </View>
-      <Button mode="contained" style={{backgroundColor: Color.colorBlueviolet}} onPress={onLoginPressed}>
+      </View> */}
+      <Button mode="contained" style={{backgroundColor: Color.colorBlueviolet}} onPress={!loading ? onLoginPressed:null}>
         Login
       </Button>
       <View style={styles.row}>

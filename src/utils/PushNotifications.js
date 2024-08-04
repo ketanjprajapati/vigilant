@@ -59,6 +59,7 @@ export const NotificationServices=(navigationRef)=>{
         console.log("Notification in background: ",remoteMessage)
         if (remoteMessage.data?.screen === 'Warning') {
           navigationRef.current.navigate(remoteMessage.data?.screen);
+          playSound();
         } else {
         }
       }
@@ -68,6 +69,7 @@ export const NotificationServices=(navigationRef)=>{
       console.log(' background!', navigationRef.current.navigate('Warning'));
       if (remoteMessage.data?.screen === 'Warning') {
         navigationRef.current.navigate(remoteMessage.data?.screen);
+        playSound();
       } else {
       }
       // Handle the background message data here if necessary
@@ -78,6 +80,7 @@ export const NotificationServices=(navigationRef)=>{
             console.log("Notification quite state: ",remoteMessage)
             if (remoteMessage.data?.screen === 'Warning') {
               navigationRef.current.navigate(remoteMessage.data?.screen);
+              playSound();
             } else {
             }
         }

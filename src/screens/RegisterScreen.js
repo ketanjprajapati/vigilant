@@ -18,9 +18,10 @@ import { sendNotification } from '../helpers/sendNotification'
 
 const SCOPES = ['https://www.googleapis.com/auth/firebase.messaging'];
 export default function RegisterScreen({ navigation }) {
-  const [name, setName] = useState({ value: 'ketan', error: '' })
-  const [email, setEmail] = useState({ value: 'ketanjdbmp33164@gmail.com', error: '' })
-  const [password, setPassword] = useState({ value: '123456', error: '' })
+  const [name, setName] = useState({ value: '', error: '' })
+  const [email, setEmail] = useState({ value: '', error: '' })
+  const [password, setPassword] = useState({ value: '', error: '' })
+  const [loading, setLoading] = useState(false)
   
   useEffect(() => {
     messaging().setBackgroundMessageHandler(async remoteMessage => {
@@ -44,74 +45,52 @@ export default function RegisterScreen({ navigation }) {
       return;
     }
     try {
-      // Create user in Firebase Authentication
-      const userQuerySnapshot = await firestore().collection('users').where('email', '==', email.value).get();
-    //   userQuerySnapshot.forEach(doc => {
-    //     const userData = doc.data(); // This contains all fields in the document
-    //     const name = userData.name;
-    //     const token = userData.fcmToken;
-        
-    //     // Pass name and token to a function
-    //     sendRegistrationSuccessNotification(token,name);
-    // });
-    // return;
+      setLoading(true)
+      auth()
+  .createUserWithEmailAndPassword(email.value, password.value)
+  .then(async(res) => {
+    console.log('User account created & signed in!',res);
+    const userQuerySnapshot = await firestore().collection('users').where('email', '==', email.value).get();
+      console.log("userQuerySnapshot: ",userQuerySnapshot)
       if (!userQuerySnapshot.empty) {
        Alert.alert("Error Message:","Account already exist.!")
+       setLoading(false)
        return;
       }
-      const userCredential = await auth().createUserWithEmailAndPassword(email.value, password.value);
-      const user = userCredential.user;
+      const user = res.user;
       const Token = await messaging().getToken();
       await firestore().collection('users').doc(user.uid).set({
         user_name:name.value,
         user_email:email.value,
-        device_token:Token,
+        notification_token:Token,
         user_password:password.value,
-        room_id:123456,
-        mobile_no:7096848834
+        // mobile_no:7096848834
       });
-      // sendNotification(email.value, 'Vigilant', 'Welcome to vigilant');
-      const url = 'https://39be-103-251-59-120.ngrok-free.app/signup';
-
-      // Configuration for the fetch request
-      const requestOptions = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-          // Add any other headers as needed
-        },
-        body: JSON.stringify({
-          user_name:name.value,
-          user_email:email.value,
-          device_token:Token,
-          user_password:password.value,
-          room_id:123456,
-          mobile_no:7096848834
-        })
-      };
-      
-      // Making the POST request
-      fetch(url, requestOptions)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json(); // Assuming the server returns JSON
-        })
-        .then(data => {
-          console.log('Success:', data);
-          // Handle the response data as needed
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          // Handle errors
-        });
-  
+      setLoading(false)
       // Navigate to success screen or perform any additional actions
-      // navigation.reset({
-      //   index: 0,
-      //   routes: [{ name: 'LoginScreen' }],
-      // });
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'LoginScreen' }],
+      });
+  })
+  .catch(error => {
+    if (error.code === 'auth/email-already-in-use') {
+      // console.log('That email address is already in use!');
+      Alert.alert("Error Message:","Account already exist.!")
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'LoginScreen' }],
+      });
+    }
+
+    if (error.code === 'auth/invalid-email') {
+      // console.log('That email address is invalid!');
+      Alert.alert("Error Message:","That email address is invalid!")
+    }
+
+    // console.error(error);
+  });
+      
     } catch (error) {
       console.error('Error registering user: ', error);
       // Handle error (e.g., display error message)
@@ -152,7 +131,7 @@ export default function RegisterScreen({ navigation }) {
       />
       <Button
         mode="contained"
-        onPress={onSignUpPressed}
+        onPress={!loading ? onSignUpPressed:null}
         style={{ marginTop: 24,backgroundColor: Color.colorBlueviolet  }}
       >
         Sign Up
