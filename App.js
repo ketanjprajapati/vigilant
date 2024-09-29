@@ -8,23 +8,25 @@ import {
   LoginScreen,
   RegisterScreen,
   ResetPasswordScreen,
-  Dashboard, WarningScreen, SuccessScreen
+   WarningScreen, SuccessScreen
 } from './src/screens'
+import { MenuProvider } from 'react-native-popup-menu';
 const Stack = createStackNavigator()
 import { NotificationServices, requestUserPermission } from './src/utils/PushNotifications'
+import NotificationScreen from './src/screens/NotificationScreen'
+import ManageDeviceScreen from './src/screens/ManageDeviceScreen'
 
 export default function App() {
   const navigationRef = useRef(null);
 
   useEffect(() => {
-    requestUserPermission()
     NotificationServices(navigationRef);
     // if (navigationRef.current) {
     // }
     checkLogin()
   }, [])
   const checkLogin=async()=>{
-    if(await getData('fcmToken')){
+    if(await getData('userId')){
         navigationRef.current.navigate('SuccessScreen')
       }else{
       navigationRef.current.navigate('LoginScreen')
@@ -33,6 +35,7 @@ export default function App() {
   
   return (
     <Provider theme={theme}>
+      <MenuProvider>
       <NavigationContainer ref={navigationRef}>
         <Stack.Navigator
           initialRouteName="StartScreen"
@@ -43,15 +46,17 @@ export default function App() {
           {/* <Stack.Screen name="StartScreen" component={StartScreen} /> */}
           <Stack.Screen name="LoginScreen" component={LoginScreen} />
           <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
-          <Stack.Screen name="Dashboard" component={Dashboard} />
           <Stack.Screen name="Warning" component={WarningScreen} />
           <Stack.Screen name="SuccessScreen" component={SuccessScreen} />
+          <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
+          <Stack.Screen name="ManageDeviceScreen" component={ManageDeviceScreen} />
           <Stack.Screen
             name="ResetPasswordScreen"
             component={ResetPasswordScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>
+      </MenuProvider>
     </Provider>
   )
 }

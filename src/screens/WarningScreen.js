@@ -15,7 +15,7 @@ const WarningScreen = () => {
       notification_token: null
     });
     stopSound()
-    navigation.navigate('LoginScreen')
+    navigation.navigate('NotificationScreen')
   }
   return (
     <Background>

@@ -99,7 +99,7 @@ export default function RegisterScreen({ navigation }) {
   return (
     <Background>
       <Logo />
-      <Header>Create Account</Header>
+      <Text style={styles.header} >Create Account</Text>
       <TextInput
         label="Name"
         returnKeyType="next"
@@ -127,7 +127,6 @@ export default function RegisterScreen({ navigation }) {
         onChangeText={(text) => setPassword({ value: text, error: '' })}
         error={!!password.error}
         errorText={password.error}
-        secureTextEntry
       />
       <Button
         mode="contained"
@@ -155,4 +154,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: theme.colors.primary,
   },
+  header:{
+    fontWeight: 'bold',
+    paddingVertical: 12,
+    fontSize: 21,
+    color: Color.colorBlueviolet
+  }
 })

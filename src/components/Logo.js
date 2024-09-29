@@ -1,8 +1,8 @@
 import React from 'react'
 import { Image, StyleSheet } from 'react-native'
 
-export default function Logo() {
-  return <Image source={require('../assets/encephai.png')} style={styles.image} />
+export default function Logo({style}) {
+  return <Image source={require('../assets/encephai.png')} style={style?style:styles.image} />
 }
 
 const styles = StyleSheet.create({

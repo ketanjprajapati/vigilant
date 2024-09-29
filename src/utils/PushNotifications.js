@@ -1,9 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
+import firestore from '@react-native-firebase/firestore';
 import Sound from 'react-native-sound';
+import { getData } from '../helpers/storage';
 let soundInstance = null;
 const playSound = () => {
-  soundInstance= new Sound('ringtone.mp3', Sound.MAIN_BUNDLE, (error) => {
+  soundInstance = new Sound('ringtone.mp3', Sound.MAIN_BUNDLE, (error) => {
     if (error) {
       console.log('Failed to load the sound', error);
       return;
@@ -33,64 +35,67 @@ export async function requestUserPermission() {
     authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
   if (enabled) {
-    console.log('Authorization status:', authStatus);
+    // console.log('Authorization status:', authStatus);
     getFCMToken()
   }
 }
 
-const getFCMToken =async()=>{
-    let fcmToken=await AsyncStorage.getItem('fcmToken')
-    console.log("old FCMToken: ",fcmToken)
-    if(!fcmToken){
-        try {
-            fcmToken = await messaging().getToken()
-            console.log("New FCMTOKEN: ",fcmToken)
-            await AsyncStorage.setItem('fcmToken',fcmToken)
-            
-        } catch (error) {
-            
-        }
+const getFCMToken = async () => {
+  let fcmToken = await AsyncStorage.getItem('fcmToken')
+  // console.log("old FCMToken: ", fcmToken)
+  if (!fcmToken) {
+    try {
+      fcmToken = await messaging().getToken()
+      let userId = await getData('userId')
+      await firestore().collection('users').doc(userId).update({
+        notification_token: fcmToken
+      });
+      // console.log("New FCMTOKEN: ", fcmToken)
+      await AsyncStorage.setItem('fcmToken', fcmToken)
+
+    } catch (error) {
+// console.log(error)
     }
+  }
 }
 
-export const NotificationServices=(navigationRef)=>{
-    messaging().onNotificationOpenedApp(remoteMessage=>
-      {
-        console.log("Notification in background: ",remoteMessage)
-        if (remoteMessage.data?.screen === 'Warning') {
-          navigationRef.current.navigate(remoteMessage.data?.screen);
-          playSound();
-        } else {
-        }
-      }
-    )
-    
-    messaging().setBackgroundMessageHandler(async remoteMessage => {
-      console.log(' background!', navigationRef.current.navigate('Warning'));
+export const NotificationServices = (navigationRef) => {
+  messaging().onNotificationOpenedApp(remoteMessage => {
+    console.log("Notification in background: ", remoteMessage)
+    if (remoteMessage.data?.screen === 'Warning') {
+      navigationRef.current.navigate(remoteMessage.data?.screen);
+      playSound();
+    } else {
+    }
+  }
+  )
+
+  messaging().setBackgroundMessageHandler(async remoteMessage => {
+    console.log(' background!', navigationRef.current.navigate('Warning'));
+    if (remoteMessage.data?.screen === 'Warning') {
+      navigationRef.current.navigate(remoteMessage.data?.screen);
+      playSound();
+    } else {
+    }
+    // Handle the background message data here if necessary
+  });
+
+  messaging().getInitialNotification().then(remoteMessage => {
+    if (remoteMessage) {
+      // console.log("Notification quite state: ", remoteMessage)
       if (remoteMessage.data?.screen === 'Warning') {
         navigationRef.current.navigate(remoteMessage.data?.screen);
         playSound();
       } else {
       }
-      // Handle the background message data here if necessary
-    });
-
-    messaging().getInitialNotification().then(remoteMessage=>{
-        if(remoteMessage){
-            console.log("Notification quite state: ",remoteMessage)
-            if (remoteMessage.data?.screen === 'Warning') {
-              navigationRef.current.navigate(remoteMessage.data?.screen);
-              playSound();
-            } else {
-            }
-        }
-    })
-    messaging().onMessage(async remoteMessage => {
-        console.log('ForeGround: ', remoteMessage);
-        if (remoteMessage.data?.screen === 'Warning') {
-          navigationRef.current.navigate(remoteMessage.data?.screen);
-          playSound();
-        } else {
-        }
-      });
+    }
+  })
+  messaging().onMessage(async remoteMessage => {
+    // console.log('ForeGround: ', remoteMessage);
+    if (remoteMessage.data?.screen === 'Warning') {
+      navigationRef.current.navigate(remoteMessage.data?.screen);
+      playSound();
+    } else {
+    }
+  });
 }

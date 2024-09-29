@@ -31,29 +31,36 @@ export default function LoginScreen({ navigation }) {
       setDeviceCode({ ...device_code, error: deviceCodeError });
       return;
     }
-    
+
     try {
       setLoading(true)
       const userQuerySnapshot = await firestore().collection('users').where('user_email', '==', email.value).where('user_password', '==', password.value).get();
       if (userQuerySnapshot.empty) {
-        Alert.alert("Error Message:","Account not exist.!")
+        Alert.alert("Error Message:", "Account not exist.!")
         setLoading(false)
         return;
-       }
+      }
       const userCredential = await auth().signInWithEmailAndPassword(email.value, password.value);
-      console.log("userCredential:",userCredential)
+      console.log("userCredential:", userCredential)
       const user = userCredential.user;
       const token = await messaging().getToken();
-  
-      await firestore().collection('users').doc(user.uid).update({
-        notification_token: token,
-        mac_address:device_code.value,
-        // deviceId:DeviceInfo.getDeviceId()
-      });
-  
+
+      const userDoc = await firestore().collection('users').doc(user.uid).get();
+      const currentMacAddresses = userDoc.data().mac_address || [];
+
+      // Add the new mac_address only if it doesn't already exist
+      if (!currentMacAddresses.includes(device_code.value)) {
+        await firestore().collection('users').doc(user.uid).update({
+          notification_token: token,
+          mac_address: firestore.FieldValue.arrayUnion(device_code.value),
+        });
+      } else {
+        console.log("Mac address already exists, not adding.");
+      }
+
       await AsyncStorage.setItem('fcmToken', token);
       await AsyncStorage.setItem('userId', user.uid);
-  
+
       // sendNotification(email.value, 'Vigilant', 'Welcome back to vigilant');
       setLoading(false)
       navigation.reset({
@@ -84,15 +91,14 @@ export default function LoginScreen({ navigation }) {
         textContentType="emailAddress"
         keyboardType="email-address"
       />
-        <TextInput
-          label="Mac Address"
-          returnKeyType="next"
-          value={device_code.value}
-          onChangeText={(text) => setDeviceCode({ value: text, error: '' })}
-          error={!!device_code.error}
-          errorText={device_code.error}
-          secureTextEntry
-        />
+      <TextInput
+        label="Mac Address"
+        returnKeyType="next"
+        value={device_code.value}
+        onChangeText={(text) => setDeviceCode({ value: text, error: '' })}
+        error={!!device_code.error}
+        errorText={device_code.error}
+      />
       <TextInput
         label="Password"
         returnKeyType="done"
@@ -100,7 +106,6 @@ export default function LoginScreen({ navigation }) {
         onChangeText={(text) => setPassword({ value: text, error: '' })}
         error={!!password.error}
         errorText={password.error}
-        secureTextEntry
       />
       {/* <View style={styles.forgotPassword}>
         <TouchableOpacity
@@ -109,8 +114,8 @@ export default function LoginScreen({ navigation }) {
           <Text style={styles.forgot}>Forgot your password?</Text>
         </TouchableOpacity>
       </View> */}
-      <Button mode="contained" style={{backgroundColor: Color.colorBlueviolet}} onPress={!loading ? onLoginPressed:null}>
-        Login
+      <Button mode="contained" style={{ backgroundColor: Color.colorBlueviolet }} onPress={!loading ? onLoginPressed : null}>
+        {loading ? 'Logging' : "Login"}
       </Button>
       <View style={styles.row}>
         <Text>Don’t have an account? </Text>
